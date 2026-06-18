@@ -1,0 +1,380 @@
+You are a Senior Full Stack Engineer, Principal Solution Architect, Staff UI/UX Designer, Product Manager, and Technical Lead.
+
+Build a complete Vercel-deployable web application called:
+
+OLAM AGRICONNECT EXPERT PORTAL
+
+The application must be production-quality in architecture and code quality, while remaining lightweight enough for Proof of Concept deployment.
+
+====================================================
+PROJECT PURPOSE
+===============
+
+The application supports an agricultural WhatsApp chatbot platform used by Olam.
+
+Farmers communicate through WhatsApp.
+
+The chatbot supports:
+
+* Surveys
+* Training Modules
+* Voice Responses
+* Plant Disease Diagnosis
+
+The primary purpose of this dashboard is to allow agricultural experts to review AI-generated plant disease diagnoses and respond to farmers.
+
+====================================================
+CURRENT ARCHITECTURE
+====================
+
+Farmer
+↓
+WhatsApp
+↓
+Meta Cloud API
+↓
+n8n
+↓
+OpenAI Image Analysis
+↓
+Dashboard API
+↓
+Expert Portal
+
+Expert
+↓
+Dashboard
+↓
+n8n Webhook
+↓
+Meta API
+↓
+Farmer
+
+====================================================
+POC REQUIREMENTS
+================
+
+This is a Proof of Concept.
+
+Do NOT over-engineer.
+
+Do NOT use complex enterprise architecture.
+
+Focus on:
+
+* Excellent UX
+* Clean architecture
+* Easy deployment
+* Easy future migration
+
+====================================================
+TECH STACK
+==========
+
+Use:
+
+* Next.js 15
+* TypeScript
+* Tailwind CSS
+* ShadCN UI
+* Lucide Icons
+* React Query
+* Recharts
+
+Deployable directly to:
+
+* Vercel
+
+====================================================
+DATA STORAGE
+============
+
+For the POC use:
+
+Google Sheets
+
+No PostgreSQL.
+
+No Supabase.
+
+No MongoDB.
+
+Use a simple REST API abstraction layer so databases can be swapped later.
+
+====================================================
+CASE DATA MODEL
+===============
+
+Each diagnosis case contains:
+
+{
+"caseId": "CASE_001",
+"phoneNo": "917085221146",
+"imageUrl": "https://...",
+"aiResponseFarmer": "...",
+"aiResponseDashboard": "...",
+"status": "EXPERT_REVIEW_REQUIRED",
+"createdAt": "2026-06-18T10:30:00Z"
+}
+
+====================================================
+INCOMING CASE API
+=================
+
+Create an API endpoint:
+
+POST /api/cases
+
+Purpose:
+
+Receive new diagnosis cases from n8n.
+
+Request Example:
+
+{
+"caseId": "CASE_001",
+"phoneNo": "917085221146",
+"imageUrl": "https://...",
+"aiResponseFarmer": "Thank you for sharing the image.",
+"aiResponseDashboard": "Possible Black Pod Disease",
+"status": "EXPERT_REVIEW_REQUIRED",
+"createdAt": "2026-06-18T10:30:00Z"
+}
+
+Store case data.
+
+Return:
+
+{
+"success": true
+}
+
+====================================================
+DASHBOARD HOME PAGE
+===================
+
+Create a beautiful dashboard.
+
+Top KPI Cards:
+
+* Total Cases
+* Pending Reviews
+* Resolved Cases
+* High Confidence Cases
+
+Display metrics dynamically.
+
+====================================================
+CASE QUEUE PAGE
+===============
+
+Display all diagnosis cases.
+
+Table Columns:
+
+* Case ID
+* Farmer Phone
+* Image Preview
+* Status
+* Created Date
+* Actions
+
+Actions:
+
+* View
+
+Status Badges:
+
+* Pending Review
+* Resolved
+* High Confidence
+
+Use color-coded badges.
+
+====================================================
+CASE DETAILS PAGE
+=================
+
+When user clicks View:
+
+Show:
+
+Image
+
+Farmer Phone Number
+
+AI Farmer Response
+
+AI Dashboard Response
+
+Status
+
+Created Time
+
+====================================================
+EXPERT REVIEW PANEL
+===================
+
+Provide a large text area:
+
+Expert Diagnosis
+
+Expert Recommendation
+
+Combined response field:
+
+Message To Farmer
+
+Expert can type final diagnosis.
+
+Provide button:
+
+SEND TO FARMER
+
+====================================================
+OUTGOING WEBHOOK
+================
+
+When expert clicks SEND TO FARMER:
+
+Call:
+
+POST <N8N_WEBHOOK_URL>
+
+Body:
+
+{
+"caseId": "CASE_001",
+"phoneNo": "917085221146",
+"message": "Expert diagnosis text"
+}
+
+The webhook URL must be configurable through environment variables.
+
+====================================================
+CASE STATUS UPDATE
+==================
+
+After successful webhook response:
+
+Automatically update case status:
+
+RESOLVED
+
+Store:
+
+resolvedAt
+
+====================================================
+IMAGE HANDLING
+==============
+
+Images are stored in Google Drive.
+
+Display images directly using image URLs.
+
+Provide:
+
+* Thumbnail View
+* Full Screen Preview
+
+====================================================
+UI DESIGN REQUIREMENTS
+======================
+
+Theme:
+
+Modern Agriculture Technology Platform
+
+Design Inspiration:
+
+* Linear
+* Stripe
+* Vercel
+* Notion
+
+Colors:
+
+Primary:
+
+#2E7D32
+
+Secondary:
+
+#81C784
+
+Background:
+
+Clean white
+
+Cards:
+
+Soft shadows
+
+Border radius:
+
+Large
+
+Typography:
+
+Modern and professional
+
+====================================================
+FUTURE-READY DESIGN
+===================
+
+Design architecture so future modules can be added:
+
+* Survey Analytics
+* Farmer Profiles
+* Training Modules
+* AI Chat Assistant
+* Disease Analytics
+* Yield Prediction
+* Farmer Segmentation
+
+Do not implement them.
+
+Only create scalable architecture.
+
+====================================================
+DELIVERABLES
+============
+
+Generate:
+
+1. Complete Next.js project structure
+
+2. All pages
+
+3. All API routes
+
+4. Components
+
+5. TypeScript interfaces
+
+6. Tailwind styling
+
+7. ShadCN integration
+
+8. Environment variable configuration
+
+9. Sample mock data
+
+10. Deployment instructions
+
+11. README
+
+12. Folder structure
+
+13. Vercel deployment configuration
+
+Provide complete source code.
+
+The application should run immediately after:
+
+npm install
+npm run dev
+
+without requiring additional implementation.
