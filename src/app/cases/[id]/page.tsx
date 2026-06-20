@@ -69,10 +69,12 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
   // Sync state if already resolved
   useEffect(() => {
     if (caseItem && caseItem.status === 'RESOLVED') {
-      setDiagnosis(caseItem.expertDiagnosis || '');
-      setRecommendation(caseItem.expertRecommendation || '');
-      setMessage(caseItem.messageToFarmer || '');
-      setIsMessageManuallyEdited(true);
+      setTimeout(() => {
+        setDiagnosis(caseItem.expertDiagnosis || '');
+        setRecommendation(caseItem.expertRecommendation || '');
+        setMessage(caseItem.messageToFarmer || '');
+        setIsMessageManuallyEdited(true);
+      }, 0);
     }
   }, [caseItem]);
 
@@ -91,7 +93,9 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (!isMessageManuallyEdited && caseItem?.status !== 'RESOLVED') {
       const template = `Expert Diagnosis: ${diagnosis || '[suspected disease]'}\n\nRecommendation:\n${recommendation || '[treatment options]'}\n\nThank you for reaching out. Please contact us if you notice further issues.`;
-      setMessage(template);
+      setTimeout(() => {
+        setMessage(template);
+      }, 0);
     }
   }, [diagnosis, recommendation, isMessageManuallyEdited, caseItem]);
 
@@ -120,7 +124,7 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
         : 'Expert response sent to farmer successfully! Case status updated to RESOLVED.'
       );
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       alert(`Error submitting response: ${err.message}`);
     }
   });
@@ -225,23 +229,31 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
           {/* Diagnostic Crop Photo Card */}
           <Card className="overflow-hidden border-zinc-200/80 shadow-xs relative group">
             <div className="relative aspect-video w-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-              <Image
-                src={caseItem.imageUrl}
-                alt="Farmer Crop Submission"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-white text-zinc-900 hover:bg-zinc-150 border-none rounded-full"
-                  onClick={() => setIsFullscreen(true)}
-                >
-                  <Maximize2 className="h-4 w-4 mr-1.5" /> Fullscreen View
-                </Button>
-              </div>
+              {caseItem.imageUrl ? (
+                <Image
+                  src={caseItem.imageUrl}
+                  alt="Farmer Crop Submission"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-zinc-400 text-sm">
+                  No image available
+                </div>
+              )}
+              {caseItem.imageUrl && (
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-white text-zinc-900 hover:bg-zinc-150 border-none rounded-full"
+                    onClick={() => setIsFullscreen(true)}
+                  >
+                    <Maximize2 className="h-4 w-4 mr-1.5" /> Fullscreen View
+                  </Button>
+                </div>
+              )}
             </div>
             <CardHeader className="py-4 px-6 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -249,7 +261,7 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
                   <span className="text-zinc-500 text-sm font-semibold">Farmer Contact:</span>
                   <span className="font-bold text-sm text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
                     <Phone className="h-4 w-4 text-zinc-400" />
-                    +{caseItem.phoneNo}
+                    {caseItem.phoneNo ? `+${caseItem.phoneNo}` : 'Unknown'}
                   </span>
                 </div>
                 {caseItem.resolvedAt && (
@@ -277,7 +289,11 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
                   <div>
                     <h4 className="text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider">Expert Insights (For Dashboard)</h4>
                     <p className="text-sm text-blue-900 dark:text-blue-300 mt-1 font-medium">
-                      {caseItem.aiResponseDashboard}
+                      {caseItem.aiResponseDashboard 
+                        ? (typeof caseItem.aiResponseDashboard === 'object' 
+                            ? JSON.stringify(caseItem.aiResponseDashboard) 
+                            : String(caseItem.aiResponseDashboard)) 
+                        : 'No AI analysis available.'}
                     </p>
                   </div>
                 </div>
@@ -290,7 +306,11 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
                   <div>
                     <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Automated Farmer Greeting (Sent via WhatsApp)</h4>
                     <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
-                      &quot;{caseItem.aiResponseFarmer}&quot;
+                      &quot;{caseItem.aiResponseFarmer 
+                        ? (typeof caseItem.aiResponseFarmer === 'object' 
+                            ? JSON.stringify(caseItem.aiResponseFarmer) 
+                            : String(caseItem.aiResponseFarmer)) 
+                        : 'No automated farmer response available.'}&quot;
                     </p>
                   </div>
                 </div>

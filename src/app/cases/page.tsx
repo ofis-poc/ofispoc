@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, RefreshCw, Calendar, Phone, Eye, Sprout, AlertCircle, FileX, ArrowRight } from 'lucide-react';
+import { Search, Filter, RefreshCw, Calendar, Phone, Eye, FileX, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,10 +44,14 @@ export default function CasesQueuePage() {
   // Apply filters and search
   const filteredCases = cases
     .filter((c) => {
+      const aiResponseDashboardStr = typeof c.aiResponseDashboard === 'object'
+        ? JSON.stringify(c.aiResponseDashboard)
+        : String(c.aiResponseDashboard || '');
+
       const matchesSearch =
         c.caseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.phoneNo.includes(searchTerm) ||
-        (c.aiResponseDashboard || '').toLowerCase().includes(searchTerm.toLowerCase());
+        aiResponseDashboardStr.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
         statusFilter === 'ALL' || c.status === statusFilter;
@@ -152,7 +156,7 @@ export default function CasesQueuePage() {
             <Calendar className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500 pointer-events-none" />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'NEWEST' | 'OLDEST')}
               className="flex h-10 w-full rounded-xl border border-zinc-200 bg-card pl-10 pr-8 py-2 text-sm ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-card dark:ring-offset-zinc-950 dark:focus-visible:ring-emerald-500 text-zinc-700 dark:text-zinc-300 cursor-pointer appearance-none outline-hidden"
               aria-label="Sort by order"
             >
@@ -235,21 +239,31 @@ export default function CasesQueuePage() {
                 <div className="flex gap-3">
                   {/* Image preview with hover zoom */}
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-zinc-200/60 dark:border-zinc-800">
-                    <Image
-                      src={c.imageUrl}
-                      alt="Crop Preview"
-                      fill
-                      className="object-cover transition-transform duration-300 hover:scale-110"
-                      unoptimized
-                    />
+                    {c.imageUrl ? (
+                      <Image
+                        src={c.imageUrl}
+                        alt="Crop Preview"
+                        fill
+                        className="object-cover transition-transform duration-300 hover:scale-110"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-xs">
+                        No image
+                      </div>
+                    )}
                   </div>
                   {/* Diagnosis snippet */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <span className="text-xs text-zinc-400 flex items-center gap-1 font-semibold mb-1">
-                      <Phone className="h-3 w-3" /> +{c.phoneNo}
+                      <Phone className="h-3 w-3" /> {c.phoneNo ? `+${c.phoneNo}` : 'Unknown'}
                     </span>
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium truncate">
-                      {c.aiResponseDashboard}
+                      {c.aiResponseDashboard 
+                        ? (typeof c.aiResponseDashboard === 'object' 
+                            ? JSON.stringify(c.aiResponseDashboard) 
+                            : String(c.aiResponseDashboard)) 
+                        : 'AI Analysis pending.'}
                     </p>
                   </div>
                 </div>
@@ -293,26 +307,36 @@ export default function CasesQueuePage() {
                       role="button"
                       aria-label={`View details for case ${c.caseId} from phone number ${c.phoneNo}`}
                     >
-                      <td className="p-4 font-bold text-zinc-900 dark:text-zinc-100">{c.caseId}</td>
+                      <td className="p-4 font-bold text-zinc-900 dark:text-zinc-100">{c.caseId || 'N/A'}</td>
                       <td className="p-4 text-zinc-600 dark:text-zinc-400">
                         <span className="flex items-center gap-1.5 font-medium">
                           <Phone className="h-3.5 w-3.5 text-zinc-400" />
-                          +{c.phoneNo}
+                          {c.phoneNo ? `+${c.phoneNo}` : 'Unknown'}
                         </span>
                       </td>
                       <td className="p-4">
                         <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-800">
-                          <Image
-                            src={c.imageUrl}
-                            alt="Crop Preview"
-                            fill
-                            className="object-cover transition-transform duration-300 hover:scale-110"
-                            unoptimized
-                          />
+                          {c.imageUrl ? (
+                            <Image
+                              src={c.imageUrl}
+                              alt="Crop Preview"
+                              fill
+                              className="object-cover transition-transform duration-300 hover:scale-110"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-xs">
+                              No image
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="p-4 text-zinc-600 dark:text-zinc-300 max-w-xs truncate font-medium">
-                        {c.aiResponseDashboard}
+                        {c.aiResponseDashboard 
+                          ? (typeof c.aiResponseDashboard === 'object' 
+                              ? JSON.stringify(c.aiResponseDashboard) 
+                              : String(c.aiResponseDashboard)) 
+                          : 'AI Analysis pending.'}
                       </td>
                       <td className="p-4 text-zinc-500 dark:text-zinc-400">
                         {formatDate(c.createdAt)}

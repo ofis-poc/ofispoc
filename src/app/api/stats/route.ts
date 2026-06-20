@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCases, getStats } from '@/lib/storage';
+import { getCases, getStats } from '@/lib/cases';
 
 export async function GET() {
   try {
@@ -44,7 +44,7 @@ export async function GET() {
     const cropCounts: { [key: string]: number } = {};
     cases.forEach((c) => {
       let crop = 'Other';
-      const diag = (c.aiResponseDashboard || '').toLowerCase();
+      const diag = String(c.aiResponseDashboard || '').toLowerCase();
       
       if (diag.includes('cacao') || diag.includes('cocoa') || diag.includes('black pod')) {
         crop = 'Cacao';
@@ -80,7 +80,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error generating statistics:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to retrieve stats data' },
+      { success: false, error: 'Failed to retrieve stats data from database' },
       { status: 500 }
     );
   }

@@ -325,31 +325,43 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200/60 dark:divide-zinc-800/80">
-                {recentCases.map((c) => (
-                  <tr key={c.caseId} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">{c.caseId}</td>
-                    <td className="p-4 text-zinc-600 dark:text-zinc-400">+{c.phoneNo}</td>
+                {recentCases.map((c, index) => (
+                  <tr key={c.caseId || index} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">{c.caseId || 'N/A'}</td>
+                    <td className="p-4 text-zinc-600 dark:text-zinc-400">{c.phoneNo ? `+${c.phoneNo}` : 'Unknown'}</td>
                     <td className="p-4">
                       <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-                        <Image
-                          src={c.imageUrl}
-                          alt="Crop Preview"
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
+                        {c.imageUrl ? (
+                          <Image
+                            src={c.imageUrl}
+                            alt="Crop Preview"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-xs">
+                            No image
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 text-zinc-600 dark:text-zinc-400 font-medium max-w-xs truncate">
-                      {c.aiResponseDashboard}
+                      {c.aiResponseDashboard 
+                        ? (typeof c.aiResponseDashboard === 'object' 
+                            ? JSON.stringify(c.aiResponseDashboard) 
+                            : String(c.aiResponseDashboard)) 
+                        : 'AI Analysis pending.'}
                     </td>
                     <td className="p-4">{getStatusBadge(c.status)}</td>
                     <td className="p-4 text-right">
-                      <Link href={`/cases/${c.caseId}`}>
-                        <Button variant="secondary" size="sm">
-                          Review
-                        </Button>
-                      </Link>
+                      {c.caseId && (
+                        <Link href={`/cases/${c.caseId}`}>
+                          <Button variant="secondary" size="sm">
+                            Review
+                          </Button>
+                        </Link>
+                      )}
                     </td>
                   </tr>
                 ))}

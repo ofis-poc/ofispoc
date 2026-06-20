@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCaseById } from '@/lib/storage';
+import { getCaseById } from '@/lib/cases';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error('Error fetching single case in API:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch case details' },
+      { success: false, error: 'Failed to fetch case details from database' },
       { status: 500 }
     );
   }
