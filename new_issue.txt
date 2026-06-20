@@ -1,0 +1,45 @@
+The AI response is being stored correctly.
+
+Current issue:
+The "Expert Insights" section is displaying raw JSON instead of a formatted UI.
+
+Example current output:
+{"plant":"Cocoa","disease":"Black Pod Disease",...}
+
+Expected behavior:
+
+* Parse `aiResponseDashboard`
+* Render it as a structured card instead of raw JSON
+
+Display the following fields when available:
+
+* Plant
+* Disease
+* Severity
+* Plant Confidence
+* Disease Confidence
+* Symptoms
+* Cause
+* Recommended Actions
+* Prevention
+
+Requirements:
+
+1. Handle both cases:
+
+   * `aiResponseDashboard` is a JSON string
+   * `aiResponseDashboard` is already an object
+
+2. Add safe parsing:
+
+   * Use try/catch around JSON.parse()
+   * Do not crash the page if JSON is invalid
+
+3. Add fallback UI:
+
+   * Show a readable message if parsing fails
+   * Example: "Unable to display expert insights."
+
+4. Preserve existing styling and card layout.
+
+The backend data is correct. This is a frontend rendering issue only.

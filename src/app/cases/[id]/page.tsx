@@ -52,6 +52,166 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMessageManuallyEdited, setIsMessageManuallyEdited] = useState(false);
 
+  // Helper to extract keys case-insensitively
+  const getField = (obj: Record<string, unknown> | null | undefined, keys: string[]): unknown => {
+    if (!obj || typeof obj !== 'object') return undefined;
+    for (const k of keys) {
+      if (k in obj && obj[k] !== undefined && obj[k] !== null) {
+        return obj[k];
+      }
+      const lowerKey = k.toLowerCase();
+      if (lowerKey in obj && obj[lowerKey] !== undefined && obj[lowerKey] !== null) {
+        return obj[lowerKey];
+      }
+    }
+    return undefined;
+  };
+
+  const renderDashboardInsight = () => {
+    const rawInsight = caseItem?.aiResponseDashboard;
+    if (!rawInsight) {
+      return <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">No AI analysis available.</p>;
+    }
+
+    let parsedInsight: Record<string, unknown> | null = null;
+    let isJson = false;
+
+    if (typeof rawInsight === 'object' && rawInsight !== null) {
+      parsedInsight = rawInsight as Record<string, unknown>;
+      isJson = true;
+    } else if (typeof rawInsight === 'string') {
+      const trimmed = rawInsight.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          parsedInsight = JSON.parse(trimmed) as Record<string, unknown>;
+          isJson = true;
+        } catch {
+          isJson = true;
+          parsedInsight = null;
+        }
+      }
+    }
+
+    if (isJson) {
+      if (!parsedInsight || typeof parsedInsight !== 'object') {
+        return <p className="text-sm text-red-500 dark:text-red-405 mt-1 font-medium">Unable to display expert insights.</p>;
+      }
+
+      const plant = getField(parsedInsight, ['plant', 'Plant']);
+      const disease = getField(parsedInsight, ['disease', 'Disease']);
+      const severity = getField(parsedInsight, ['severity', 'Severity']);
+      const plantConf = getField(parsedInsight, ['plantConfidence', 'plant_confidence', 'plantConfidenceScore', 'Plant Confidence']);
+      const diseaseConf = getField(parsedInsight, ['diseaseConfidence', 'disease_confidence', 'diseaseConfidenceScore', 'Disease Confidence']);
+      const symptoms = getField(parsedInsight, ['symptoms', 'Symptoms', 'symptom']);
+      const cause = getField(parsedInsight, ['cause', 'Cause', 'causes']);
+      const actions = getField(parsedInsight, ['recommendedActions', 'recommended_actions', 'Recommended Actions', 'recommendations', 'recommendation']);
+      const prevention = getField(parsedInsight, ['prevention', 'Prevention', 'preventions']);
+
+      const formatConfidence = (val: unknown) => {
+        if (val === undefined || val === null) return '';
+        const num = parseFloat(String(val));
+        if (isNaN(num)) return String(val);
+        if (num <= 1.0) return `${Math.round(num * 100)}%`;
+        return `${Math.round(num)}%`;
+      };
+
+      const getSeverityColor = (sev: unknown) => {
+        if (!sev) return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300';
+        const str = String(sev).toLowerCase();
+        if (str.includes('high') || str.includes('severe')) {
+          return 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-450 border-rose-200/50';
+        }
+        if (str.includes('medium') || str.includes('mod')) {
+          return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-450 border-amber-200/50';
+        }
+        if (str.includes('low') || str.includes('mild')) {
+          return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-450 border-emerald-200/50';
+        }
+        return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 border-zinc-200/50';
+      };
+
+      const renderListOrText = (val: unknown) => {
+        if (Array.isArray(val)) {
+          return (
+            <ul className="list-disc pl-4 space-y-1 mt-1">
+              {val.map((item: unknown, idx: number) => (
+                <li key={idx} className="text-xs text-zinc-600 dark:text-zinc-350">{String(item)}</li>
+              ))}
+            </ul>
+          );
+        }
+        return <p className="text-xs text-zinc-600 dark:text-zinc-350 mt-0.5">{String(val)}</p>;
+      };
+
+      return (
+        <div className="space-y-3.5 mt-2.5">
+          {/* Top Summary Info Row */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Identified Plant</span>
+              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                {plant ? String(plant) : 'Unknown'} {!!plantConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(plantConf)})</span>}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Suspected Disease</span>
+              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                {disease ? String(disease) : 'Unknown'} {!!diseaseConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(diseaseConf)})</span>}
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-zinc-200/40 dark:border-zinc-800/60 my-2" />
+
+          {/* Severity Badges */}
+          {!!severity && (
+            <div>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Severity Rating</span>
+              <Badge variant="outline" className={`px-2.5 py-0.5 text-xs font-semibold capitalize ${getSeverityColor(severity)}`}>
+                {String(severity)}
+              </Badge>
+            </div>
+          )}
+
+          {/* Detail Blocks */}
+          <div className="grid gap-4.5 sm:grid-cols-2 mt-2">
+            {!!symptoms && (
+              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Key Symptoms</span>
+                {renderListOrText(symptoms)}
+              </div>
+            )}
+            {!!cause && (
+              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Likely Cause</span>
+                {renderListOrText(cause)}
+              </div>
+            )}
+            {!!actions && (
+              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
+                <span className="text-[10px] font-bold text-[#2E7D32] dark:text-emerald-400 uppercase tracking-wider block mb-1">Recommended Actions</span>
+                {renderListOrText(actions)}
+              </div>
+            )}
+            {!!prevention && (
+              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
+                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1">Prevention &amp; Cultural Controls</span>
+                {renderListOrText(prevention)}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Default plain text rendering (backward compatibility)
+    return (
+      <p className="text-sm text-blue-900 dark:text-blue-300 mt-1 font-medium leading-relaxed">
+        {String(rawInsight)}
+      </p>
+    );
+  };
+
   // Fetch case details
   const { data, isLoading, error } = useQuery<CaseResponse>({
     queryKey: ['case', caseId],
@@ -286,15 +446,9 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
               <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/40">
                 <div className="flex gap-2">
                   <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                  <div>
+                  <div className="w-full">
                     <h4 className="text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider">Expert Insights (For Dashboard)</h4>
-                    <p className="text-sm text-blue-900 dark:text-blue-300 mt-1 font-medium">
-                      {caseItem.aiResponseDashboard 
-                        ? (typeof caseItem.aiResponseDashboard === 'object' 
-                            ? JSON.stringify(caseItem.aiResponseDashboard) 
-                            : String(caseItem.aiResponseDashboard)) 
-                        : 'No AI analysis available.'}
-                    </p>
+                    {renderDashboardInsight()}
                   </div>
                 </div>
               </div>
