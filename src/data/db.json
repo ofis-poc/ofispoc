@@ -117,13 +117,16 @@
     "resolvedAt": "2026-06-18T17:35:20.415Z"
   },
   {
-  "caseId": "CASE_010",
-  "phoneNo": "919077900322",
-  "imageUrl": "https://drive.google.com/file/d/1jacgyWYDnyJ90c1PNXszw0HYtvlBYuxB/view?usp=drive_link",
-  "aiResponseFarmer": "Thank you for sharing the image. Our agricultural AI is analyzing your submission.",
-  "aiResponseDashboard": "Expert review required.",
-  "status": "EXPERT_REVIEW_REQUIRED",
-  "createdAt": "2026-06-18T18:45:00Z"
-}
-  
+    "caseId": "CASE_010",
+    "phoneNo": "919077900322",
+    "imageUrl": "https://drive.google.com/file/d/1jacgyWYDnyJ90c1PNXszw0HYtvlBYuxB/view?usp=drive_link",
+    "aiResponseFarmer": "Thank you for sharing the image. Our agricultural AI is analyzing your submission.",
+    "aiResponseDashboard": "Expert review required.",
+    "status": "RESOLVED",
+    "createdAt": "2026-06-18T18:45:00Z",
+    "expertDiagnosis": "nbnb",
+    "expertRecommendation": "bbnb",
+    "messageToFarmer": "Expert Diagnosis: nbnb\n\nRecommendation:\nbbnb\n\nThank you for reaching out. Please contact us if you notice further issues.",
+    "resolvedAt": "2026-06-20T17:07:37.938Z"
+  }
 ]

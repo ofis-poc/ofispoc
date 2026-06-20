@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Sprout, LayoutDashboard, ClipboardList, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Menu, X, Sprout, LayoutDashboard, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import ThemeToggle from './theme-toggle';
 
@@ -17,9 +17,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     const savedState = localStorage.getItem('sidebar-collapsed');
     if (savedState !== null) {
-      setIsCollapsed(savedState === 'true');
+      setTimeout(() => {
+        setIsCollapsed(savedState === 'true');
+      }, 0);
     }
-    setMounted(true);
+    setTimeout(() => {
+      setMounted(true);
+    }, 0);
   }, []);
 
   // Sync collapsed state changes to local storage
@@ -31,7 +35,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Close mobile drawer on route changes
   useEffect(() => {
-    setIsMobileOpen(false);
+    setTimeout(() => {
+      setIsMobileOpen(false);
+    }, 0);
   }, [pathname]);
 
   // Handle escape key to close mobile drawer

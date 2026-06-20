@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateCase } from '@/lib/storage';
+import { updateCase } from '@/lib/cases';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -46,8 +46,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           webhookError = `n8n webhook returned status ${response.status}: ${errorText}`;
           console.error(webhookError);
         }
-      } catch (err: any) {
-        webhookError = `Failed to contact n8n webhook: ${err.message}`;
+      } catch (err) {
+        const errorObj = err as Error;
+        webhookError = `Failed to contact n8n webhook: ${errorObj.message}`;
         console.error(webhookError);
       }
     } else {
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     if (!updatedCase) {
       return NextResponse.json(
-        { success: false, error: `Failed to update case with ID ${id} in storage` },
+        { success: false, error: `Failed to update case with ID ${id} in database` },
         { status: 500 }
       );
     }
@@ -81,10 +82,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       webhookSent,
       webhookWarning: webhookError,
     });
-  } catch (error: any) {
-    console.error('Error resolving case in API:', error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Error resolving case in API:', err);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to resolve case' },
+      { success: false, error: err.message || 'Failed to resolve case' },
       { status: 500 }
     );
   }
