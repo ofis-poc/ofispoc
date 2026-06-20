@@ -76,36 +76,20 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
     let parsedInsight: Record<string, unknown> | null = null;
     let isJson = false;
 
-    if (typeof rawInsight === 'object' && rawInsight !== null) {
-      parsedInsight = rawInsight as Record<string, unknown>;
-      isJson = true;
-    } else if (typeof rawInsight === 'string') {
-      const trimmed = rawInsight.trim();
-      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-        try {
-          parsedInsight = JSON.parse(trimmed) as Record<string, unknown>;
-          isJson = true;
-        } catch {
-          isJson = true;
-          parsedInsight = null;
-        }
-      }
+    try {
+      parsedInsight = typeof rawInsight === 'string'
+        ? (JSON.parse(rawInsight) as Record<string, unknown>)
+        : (rawInsight as Record<string, unknown>);
+      isJson = typeof parsedInsight === 'object' && parsedInsight !== null;
+    } catch {
+      isJson = typeof rawInsight === 'string' && (rawInsight.trim().startsWith('{') || rawInsight.trim().startsWith('['));
+      parsedInsight = null;
     }
 
     if (isJson) {
       if (!parsedInsight || typeof parsedInsight !== 'object') {
         return <p className="text-sm text-red-500 dark:text-red-405 mt-1 font-medium">Unable to display expert insights.</p>;
       }
-
-      const plant = getField(parsedInsight, ['plant', 'Plant']);
-      const disease = getField(parsedInsight, ['disease', 'Disease']);
-      const severity = getField(parsedInsight, ['severity', 'Severity']);
-      const plantConf = getField(parsedInsight, ['plantConfidence', 'plant_confidence', 'plantConfidenceScore', 'Plant Confidence']);
-      const diseaseConf = getField(parsedInsight, ['diseaseConfidence', 'disease_confidence', 'diseaseConfidenceScore', 'Disease Confidence']);
-      const symptoms = getField(parsedInsight, ['symptoms', 'Symptoms', 'symptom']);
-      const cause = getField(parsedInsight, ['cause', 'Cause', 'causes']);
-      const actions = getField(parsedInsight, ['recommendedActions', 'recommended_actions', 'Recommended Actions', 'recommendations', 'recommendation']);
-      const prevention = getField(parsedInsight, ['prevention', 'Prevention', 'preventions']);
 
       const formatConfidence = (val: unknown) => {
         if (val === undefined || val === null) return '';
@@ -115,98 +99,152 @@ export default function CaseDetailsPage({ params }: { params: Promise<{ id: stri
         return `${Math.round(num)}%`;
       };
 
-      const getSeverityColor = (sev: unknown) => {
-        if (!sev) return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300';
-        const str = String(sev).toLowerCase();
-        if (str.includes('high') || str.includes('severe')) {
-          return 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-450 border-rose-200/50';
-        }
-        if (str.includes('medium') || str.includes('mod')) {
-          return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-450 border-amber-200/50';
-        }
-        if (str.includes('low') || str.includes('mild')) {
-          return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-450 border-emerald-200/50';
-        }
-        return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 border-zinc-200/50';
-      };
-
       const renderListOrText = (val: unknown) => {
         if (Array.isArray(val)) {
           return (
             <ul className="list-disc pl-4 space-y-1 mt-1">
               {val.map((item: unknown, idx: number) => (
-                <li key={idx} className="text-xs text-zinc-600 dark:text-zinc-350">{String(item)}</li>
+                <li key={idx} className="text-xs text-zinc-605 dark:text-zinc-350">{String(item)}</li>
               ))}
             </ul>
           );
         }
-        return <p className="text-xs text-zinc-600 dark:text-zinc-350 mt-0.5">{String(val)}</p>;
+        return <p className="text-xs text-zinc-605 dark:text-zinc-350 mt-0.5">{String(val)}</p>;
       };
 
-      return (
-        <div className="space-y-3.5 mt-2.5">
-          {/* Top Summary Info Row */}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Identified Plant</span>
-              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
-                {plant ? String(plant) : 'Unknown'} {!!plantConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(plantConf)})</span>}
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Suspected Disease</span>
-              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
-                {disease ? String(disease) : 'Unknown'} {!!diseaseConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(diseaseConf)})</span>}
-              </p>
-            </div>
-          </div>
+      // Determine Response Type (High Confidence vs Expert Review)
+      const possiblePlant = getField(parsedInsight, ['possible_plant', 'possiblePlant']);
+      const possibleDiseases = getField(parsedInsight, ['possible_diseases', 'possibleDiseases']);
+      const reason = getField(parsedInsight, ['reason', 'Reason', 'reviewReason', 'review_reason']);
 
-          <div className="border-t border-zinc-200/40 dark:border-zinc-800/60 my-2" />
+      const isExpertReview = possiblePlant !== undefined || possibleDiseases !== undefined || reason !== undefined;
 
-          {/* Severity Badges */}
-          {!!severity && (
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Severity Rating</span>
-              <Badge variant="outline" className={`px-2.5 py-0.5 text-xs font-semibold capitalize ${getSeverityColor(severity)}`}>
-                {String(severity)}
-              </Badge>
+      if (isExpertReview) {
+        // --- Expert Review Layout ---
+        const plantConf = getField(parsedInsight, ['plant_confidence', 'plantConfidence']);
+        const diseaseConf = getField(parsedInsight, ['disease_confidence', 'diseaseConfidence']);
+
+        return (
+          <div className="space-y-3.5 mt-2.5 animate-fade-in">
+            {/* Summary Row */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Possible Plant</span>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                  {possiblePlant ? String(possiblePlant) : 'Unknown'} {plantConf !== undefined && plantConf !== null && <span className="text-xs font-normal text-zinc-450">({formatConfidence(plantConf)})</span>}
+                </p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Possible Diseases</span>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                  {possibleDiseases ? String(possibleDiseases) : 'Unknown'} {diseaseConf !== undefined && diseaseConf !== null && <span className="text-xs font-normal text-zinc-450">({formatConfidence(diseaseConf)})</span>}
+                </p>
+              </div>
             </div>
-          )}
 
-          {/* Detail Blocks */}
-          <div className="grid gap-4.5 sm:grid-cols-2 mt-2">
-            {!!symptoms && (
+            <div className="border-t border-zinc-200/40 dark:border-zinc-800/60 my-2" />
+
+            {/* Review Reason block */}
+            {!!reason && (
               <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Key Symptoms</span>
-                {renderListOrText(symptoms)}
-              </div>
-            )}
-            {!!cause && (
-              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Likely Cause</span>
-                {renderListOrText(cause)}
-              </div>
-            )}
-            {!!actions && (
-              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
-                <span className="text-[10px] font-bold text-[#2E7D32] dark:text-emerald-400 uppercase tracking-wider block mb-1">Recommended Actions</span>
-                {renderListOrText(actions)}
-              </div>
-            )}
-            {!!prevention && (
-              <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
-                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1">Prevention &amp; Cultural Controls</span>
-                {renderListOrText(prevention)}
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Review Reason</span>
+                <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed font-semibold">{String(reason)}</p>
               </div>
             )}
           </div>
-        </div>
-      );
+        );
+      } else {
+        // --- High Confidence Layout ---
+        const plant = getField(parsedInsight, ['plant', 'Plant']);
+        const disease = getField(parsedInsight, ['disease', 'Disease']);
+        const severity = getField(parsedInsight, ['severity', 'Severity']);
+        const plantConf = getField(parsedInsight, ['plant_confidence', 'plantConfidence']);
+        const diseaseConf = getField(parsedInsight, ['disease_confidence', 'diseaseConfidence']);
+        const symptoms = getField(parsedInsight, ['symptoms', 'Symptoms', 'symptom']);
+        const cause = getField(parsedInsight, ['cause', 'Cause', 'causes']);
+        const actions = getField(parsedInsight, ['recommended_actions', 'recommendedActions', 'Recommended Actions', 'recommendations', 'recommendation']);
+        const prevention = getField(parsedInsight, ['prevention', 'Prevention', 'preventions']);
+
+        const getSeverityColor = (sev: unknown) => {
+          if (!sev) return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300';
+          const str = String(sev).toLowerCase();
+          if (str.includes('high') || str.includes('severe')) {
+            return 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-450 border-rose-200/50';
+          }
+          if (str.includes('medium') || str.includes('mod')) {
+            return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-450 border-amber-200/50';
+          }
+          if (str.includes('low') || str.includes('mild')) {
+            return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-450 border-emerald-200/50';
+          }
+          return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 border-zinc-200/50';
+        };
+
+        return (
+          <div className="space-y-3.5 mt-2.5 animate-fade-in">
+            {/* Top Summary Info Row */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Identified Plant</span>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                  {plant ? String(plant) : 'Unknown'} {!!plantConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(plantConf)})</span>}
+                </p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Suspected Disease</span>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                  {disease ? String(disease) : 'Unknown'} {!!diseaseConf && <span className="text-xs font-normal text-zinc-450">({formatConfidence(diseaseConf)})</span>}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-zinc-200/40 dark:border-zinc-800/60 my-2" />
+
+            {/* Severity Badges */}
+            {!!severity && (
+              <div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Severity Rating</span>
+                <Badge variant="outline" className={`px-2.5 py-0.5 text-xs font-semibold capitalize ${getSeverityColor(severity)}`}>
+                  {String(severity)}
+                </Badge>
+              </div>
+            )}
+
+            {/* Detail Blocks */}
+            <div className="grid gap-4.5 sm:grid-cols-2 mt-2">
+              {!!symptoms && (
+                <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Key Symptoms</span>
+                  {renderListOrText(symptoms)}
+                </div>
+              )}
+              {!!cause && (
+                <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Likely Cause</span>
+                  {renderListOrText(cause)}
+                </div>
+              )}
+              {!!actions && (
+                <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
+                  <span className="text-[10px] font-bold text-[#2E7D32] dark:text-emerald-400 uppercase tracking-wider block mb-1">Recommended Actions</span>
+                  {renderListOrText(actions)}
+                </div>
+              )}
+              {!!prevention && (
+                <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-3 rounded-xl border border-zinc-100 dark:border-zinc-900 sm:col-span-2">
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-1">Prevention &amp; Cultural Controls</span>
+                  {renderListOrText(prevention)}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
     }
 
     // Default plain text rendering (backward compatibility)
     return (
-      <p className="text-sm text-blue-900 dark:text-blue-300 mt-1 font-medium leading-relaxed">
+      <p className="text-sm text-blue-900 dark:text-blue-300 mt-1 font-medium leading-relaxed animate-fade-in">
         {String(rawInsight)}
       </p>
     );
