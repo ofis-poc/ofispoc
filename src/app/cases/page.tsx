@@ -34,6 +34,79 @@ export default function CasesQueuePage() {
 
   const cases = data?.data || [];
 
+  const renderDashboardSummary = (rawInsight: unknown) => {
+    if (!rawInsight) return <span>AI Analysis pending.</span>;
+
+    let parsed: Record<string, unknown> | null = null;
+    let isJson = false;
+
+    try {
+      parsed = typeof rawInsight === 'string'
+        ? (JSON.parse(rawInsight) as Record<string, unknown>)
+        : (rawInsight as Record<string, unknown>);
+      isJson = typeof parsed === 'object' && parsed !== null;
+    } catch {
+      isJson = typeof rawInsight === 'string' && (rawInsight.trim().startsWith('{') || rawInsight.trim().startsWith('['));
+      parsed = null;
+    }
+
+    if (isJson) {
+      if (!parsed || typeof parsed !== 'object') {
+        return <span className="text-red-500 dark:text-red-400">Unable to display expert insights.</span>;
+      }
+
+      const formatConfidence = (val: unknown) => {
+        if (val === undefined || val === null) return '';
+        const num = parseFloat(String(val));
+        if (isNaN(num)) return String(val);
+        if (num <= 1.0) return `${Math.round(num * 100)}%`;
+        return `${Math.round(num)}%`;
+      };
+
+      const plant = parsed.plant || parsed.Plant;
+      const disease = parsed.disease || parsed.Disease;
+      const severity = parsed.severity || parsed.Severity;
+
+      const possiblePlant = parsed.possible_plant || parsed.possiblePlant;
+      const possibleDiseases = parsed.possible_diseases || parsed.possibleDiseases;
+      const reason = parsed.reason || parsed.Reason;
+
+      const plantConf = parsed.plant_confidence !== undefined ? parsed.plant_confidence : parsed.plantConfidence;
+      const diseaseConf = parsed.disease_confidence !== undefined ? parsed.disease_confidence : parsed.diseaseConfidence;
+
+      const parts: string[] = [];
+      const isExpertReview = possiblePlant !== undefined || possibleDiseases !== undefined || reason !== undefined;
+
+      if (isExpertReview) {
+        if (possiblePlant) parts.push(String(possiblePlant));
+        parts.push('Expert Review Required');
+      } else {
+        if (plant) parts.push(String(plant));
+        if (disease) parts.push(String(disease));
+        if (severity) parts.push(String(severity));
+      }
+
+      const summaryLine = parts.join(' • ');
+
+      return (
+        <div className="text-xs leading-normal">
+          <div className="font-semibold text-zinc-900 dark:text-zinc-100">{summaryLine}</div>
+          <div className="text-zinc-500 dark:text-zinc-400 mt-0.5 space-y-0.5">
+            {plantConf !== undefined && plantConf !== null && (
+              <div>Plant Confidence: {formatConfidence(plantConf)}</div>
+            )}
+            {diseaseConf !== undefined && diseaseConf !== null && (
+              <div>Disease Confidence: {formatConfidence(diseaseConf)}</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Non-JSON plain text fallback
+    return <span className="text-zinc-650 dark:text-zinc-300 leading-normal">{String(rawInsight)}</span>;
+  };
+
   // Reset filters helper
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -258,13 +331,9 @@ export default function CasesQueuePage() {
                     <span className="text-xs text-zinc-400 flex items-center gap-1 font-semibold mb-1">
                       <Phone className="h-3 w-3" /> {c.phoneNo ? `+${c.phoneNo}` : 'Unknown'}
                     </span>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium truncate">
-                      {c.aiResponseDashboard 
-                        ? (typeof c.aiResponseDashboard === 'object' 
-                            ? JSON.stringify(c.aiResponseDashboard) 
-                            : String(c.aiResponseDashboard)) 
-                        : 'AI Analysis pending.'}
-                    </p>
+                    <div className="text-xs font-medium truncate">
+                      {renderDashboardSummary(c.aiResponseDashboard)}
+                    </div>
                   </div>
                 </div>
 
@@ -331,12 +400,8 @@ export default function CasesQueuePage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-4 text-zinc-600 dark:text-zinc-300 max-w-xs truncate font-medium">
-                        {c.aiResponseDashboard 
-                          ? (typeof c.aiResponseDashboard === 'object' 
-                              ? JSON.stringify(c.aiResponseDashboard) 
-                              : String(c.aiResponseDashboard)) 
-                          : 'AI Analysis pending.'}
+                      <td className="p-4 text-zinc-650 dark:text-zinc-300 max-w-xs font-medium">
+                        {renderDashboardSummary(c.aiResponseDashboard)}
                       </td>
                       <td className="p-4 text-zinc-500 dark:text-zinc-400">
                         {formatDate(c.createdAt)}
