@@ -131,11 +131,3 @@ N8N_WEBHOOK_URL=https://primary-production.shared-n8n.your-domain.com/webhook/c5
 
 ---
 
-## 🌐 Vercel Deployment
-
-This project is ready to deploy on **Vercel** with zero configuration required.
-
-1. Push your code to a GitHub, GitLab, or Bitbucket repository.
-2. Import the project in Vercel.
-3. Configure the environment variables (from `.env.local`) in the Vercel Dashboard under **Project Settings > Environment Variables**.
-4. Click **Deploy**. Vercel will automatically build and serve the application globally.
