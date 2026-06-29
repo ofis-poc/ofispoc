@@ -1,0 +1,264 @@
+Bhai ye prompt de de AI agent ko. Ye usko clearly batayega ki kya build karna hai aur kya nahi touch karna.
+
+---
+
+# Prompt
+
+You are continuing the OFIS AgriConnect project.
+
+Do NOT redesign the existing UI.
+
+Do NOT change the existing Survey Builder architecture.
+
+Work only on the next module after Survey Publishing.
+
+---
+
+## Objective
+
+Implement a Survey Assignment module.
+
+When an admin clicks **Publish Survey**, they should be able to select farmers from the existing database and assign the survey to them.
+
+After assignment, the system should trigger an n8n webhook which will handle the WhatsApp survey flow.
+
+---
+
+## Existing Database
+
+### surveys
+
+Already exists.
+
+### survey_questions
+
+Already exists.
+
+### listed_farmers
+
+Already exists.
+
+Contains all registered farmers.
+
+Fields include:
+
+* phone_no
+* language
+* name (if available)
+* other metadata
+
+Do NOT modify this table.
+
+---
+
+## Create New Table
+
+Create a PostgreSQL table named
+
+survey_assignments
+
+Schema:
+
+```sql
+CREATE TABLE "ofis-farmer".survey_assignments (
+
+    id SERIAL PRIMARY KEY,
+
+    survey_id VARCHAR(50) NOT NULL,
+
+    phone_no VARCHAR(30) NOT NULL,
+
+    assigned_at TIMESTAMP DEFAULT NOW(),
+
+    status VARCHAR(30) DEFAULT 'PENDING'
+);
+```
+
+Status values:
+
+* PENDING
+* IN_PROGRESS
+* COMPLETED
+* FAILED
+
+Do NOT create dynamic tables.
+
+Every survey assignment must be stored in this single table.
+
+---
+
+## Publish Survey Flow
+
+Current flow:
+
+Publish button exists.
+
+Replace its behavior.
+
+New flow:
+
+Click Publish
+
+↓
+
+Open Modal
+
+↓
+
+Fetch every farmer from
+
+listed_farmers
+
+↓
+
+Display searchable list
+
+Example:
+
+☑ +917085221146
+
+☑ +919077900322
+
+☑ +84901234567
+
+Support:
+
+* Search by phone
+* Select All
+* Unselect All
+
+Admin selects multiple farmers.
+
+Click
+
+Assign Survey
+
+---
+
+## Database
+
+For every selected farmer insert
+
+survey_id
+
+phone_no
+
+assigned_at
+
+status=PENDING
+
+inside
+
+survey_assignments
+
+Skip duplicate assignments.
+
+If
+
+survey_id
+
+*
+
+phone_no
+
+already exists
+
+do not insert twice.
+
+---
+
+## Trigger n8n
+
+After successful inserts
+
+POST
+
+to
+
+POST /webhook/start-survey
+
+Payload:
+
+```json
+{
+  "surveyId": "<survey_id>",
+  "assignmentTable": "survey_assignments",
+  "responseTable": "survey_responses"
+}
+```
+
+Do NOT wait for n8n completion.
+
+Fire-and-forget request.
+
+If webhook fails
+
+show toast
+
+"Survey published but webhook trigger failed."
+
+---
+
+## UI
+
+Inside Publish Modal
+
+Display
+
+Survey Name
+
+Number of selected farmers
+
+Search box
+
+Scrollable farmer list
+
+Checkboxes
+
+Buttons
+
+Cancel
+
+Assign Survey
+
+Show loading spinner while assigning.
+
+---
+
+## Validation
+
+Do not allow Publish if
+
+0 farmers selected.
+
+Show validation message.
+
+---
+
+## Code Requirements
+
+* Reuse existing PostgreSQL helper architecture.
+* Create reusable helper functions.
+* Follow existing API route conventions.
+* Keep TypeScript strict.
+* Do not introduce unnecessary dependencies.
+* Keep UI consistent with existing OFIS design system.
+* Do not modify unrelated files.
+
+---
+
+## Deliverables
+
+Implement:
+
+1. PostgreSQL helper functions
+2. survey_assignments database integration
+3. API endpoints
+4. Publish modal
+5. Farmer selector UI
+6. Duplicate prevention
+7. n8n webhook trigger
+8. Loading states
+9. Success/error toasts
+
+Do not stop until the complete feature is implemented end-to-end.

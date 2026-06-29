@@ -1,0 +1,352 @@
+You are building an enterprise Survey Builder for the Olam AgriConnect Expert Portal.
+
+The application is built using:
+
+Next.js App Router
+TypeScript
+TailwindCSS
+PostgreSQL
+Existing Survey APIs
+Existing multilingual translation API (FreeLLMAPI)
+
+The goal is to replace Google Sheets completely.
+
+This Survey Builder will become the single place where administrators create WhatsApp surveys for farmers.
+
+Overall UX
+
+The flow should be exactly like Google Forms.
+
+Creating a survey and creating questions are two different steps.
+
+STEP 1
+
+Click
+
++ Create Survey
+
+Open a modal.
+
+Fields:
+
+Survey Name
+Description
+Status
+Draft
+Published
+Supported Languages
+English (required)
+Hindi
+Spanish
+Thai
+
+Click
+
+Save Survey
+
+This only creates the survey.
+
+Do NOT ask for questions yet.
+
+After saving:
+
+Close modal.
+
+Refresh survey list.
+
+Show:
+
+Questions : 0
+STEP 2
+
+Survey list
+
+Each survey card/table row should contain
+
+Survey Name
+Description
+Number of Questions
+Languages
+Created Date
+Status
+
+Actions
+
+Edit Survey
+Duplicate
+Delete
+Publish
+
+Clicking
+
+Edit Survey
+
+opens the Survey Builder.
+
+STEP 3
+
+Survey Builder Layout
+
+Top
+
+Survey Details
+
+Below
+
+Questions
+
+Below
+
++ Add Question
+
+Initially
+
+No questions added yet.
+Question Builder
+
+Click
+
++ Add Question
+
+Open a Question Card.
+
+Fields
+
+Question Type
+
+Dropdown
+
+Single Choice
+
+Numeric
+
+Text
+
+Voice
+
+Question (English)
+
+Large textarea
+
+Example
+
+What is your biggest farming challenge?
+
+If type = Single Choice
+
+Show
+
+Options
+
+Each option editable
+
+Pests
+
+Diseases
+
+Weather
+
+Market Access
+
+Button
+
++ Add Option
+
+Admin can
+
+Add
+Delete
+Edit
+Reorder
+
+If Numeric
+
+Hide options.
+
+If Text
+
+Hide options.
+
+If Voice
+
+Hide options.
+
+Below Question
+
+Button
+
+Generate Translation
+
+When clicked
+
+Call existing Translation API.
+
+Translate
+
+Question
+
+and
+
+Options
+
+into
+
+Hindi
+
+Spanish
+
+Thai
+
+Display tabs
+
+English
+
+Hindi
+
+Spanish
+
+Thai
+
+Each tab editable.
+
+Admin can manually modify translations.
+
+Save Question
+
+Click
+
+Save Question
+
+Store
+
+English question
+
+Hindi question
+
+Spanish question
+
+Thai question
+
+English options
+
+Hindi options
+
+Spanish options
+
+Thai options
+
+Question Type
+
+Display Order
+
+inside PostgreSQL.
+
+Question List
+
+After saving
+
+Show
+
+Q1
+
+What is your biggest farming challenge?
+
+Single Choice
+
+Edit
+
+Duplicate
+
+Delete
+
+Second question
+
+Q2
+
+How many cocoa plots do you own?
+
+Numeric
+
+Third
+
+Q3
+
+Describe your biggest farming problem.
+
+Text
+
+Fourth
+
+Q4
+
+Record a voice message.
+
+Voice
+
+Allow Drag & Drop
+
+Questions should be reorderable.
+
+Save order automatically.
+
+Publish
+
+Top right
+
+Publish Survey
+
+When clicked
+
+Change survey status
+
+Draft
+
+→
+
+Published
+
+Database
+
+Use PostgreSQL.
+
+Do NOT use JSON files.
+
+Do NOT use local mock storage.
+
+Every create/update/delete must call the existing Survey APIs.
+
+UI Requirements
+
+Enterprise UI.
+
+Very clean.
+
+Google Forms inspired.
+
+Typeform inspired.
+
+No giant modals.
+
+Rounded cards.
+
+Professional spacing.
+
+Premium admin console.
+
+Consistent with the rest of the Olam AgriConnect dashboard.
+
+Future Ready
+
+Architecture should support
+
+unlimited languages
+unlimited question types
+conditional logic
+branching
+required questions
+validation
+survey versioning
+
+Do not implement these yet.
+
+Design the code so they can be added later without major refactoring.

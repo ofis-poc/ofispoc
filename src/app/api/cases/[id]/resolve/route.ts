@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    const webhookUrl = process.env.N8N_WEBHOOK_SURVEY_URL;
     let webhookSent = false;
     let webhookError = null;
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         console.error(webhookError);
       }
     } else {
-      console.log('N8N_WEBHOOK_URL is not configured. Simulating successful webhook request.');
+      console.log('N8N_WEBHOOK_SURVEY_URL is not configured. Simulating successful webhook request.');
       webhookSent = true; // Simulate success in development
     }
 
