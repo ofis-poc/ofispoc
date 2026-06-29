@@ -1,0 +1,101 @@
+[
+  {
+    "id": "survey_001",
+    "name": "Farmer Baseline Survey",
+    "questions": [
+      {
+        "id": "q_1",
+        "questionNo": "Q1",
+        "question": "How many cocoa plots do you own?",
+        "type": "numeric"
+      },
+      {
+        "id": "q_2",
+        "questionNo": "Q2",
+        "question": "What is your biggest farming challenge?",
+        "type": "single",
+        "options": [
+          "Disease",
+          "Pests",
+          "Low Yield",
+          "Labour"
+        ]
+      },
+      {
+        "id": "q_3",
+        "questionNo": "Q3",
+        "question": "Describe your farming problem.",
+        "type": "text"
+      },
+      {
+        "id": "q_4",
+        "questionNo": "Q4",
+        "question": "Please explain your issue.",
+        "type": "voice"
+      }
+    ],
+    "languages": [
+      "English"
+    ],
+    "createdAt": "2026-06-20T10:00:00.000Z",
+    "status": "Active"
+  },
+  {
+    "id": "survey_002",
+    "name": "Cocoa Yield Assessment 2026",
+    "questions": [
+      {
+        "id": "q_1782650169321_qlaxg",
+        "questionNo": "Q1",
+        "question": "What was your total harvest in the last season (bags)?",
+        "type": "numeric"
+      },
+      {
+        "id": "q_1782650169321_45u0s",
+        "questionNo": "Q2",
+        "question": "Are you using organic or chemical fertilizers?",
+        "type": "single",
+        "options": [
+          "Organic",
+          "Chemical",
+          "Both",
+          "None"
+        ]
+      },
+      {
+        "id": "q_1782650169321_173aw",
+        "questionNo": "Q3",
+        "question": "Are you using organic fertilizers?",
+        "type": "single",
+        "options": [
+          "Organic",
+          "Chemical",
+          "Both",
+          "None"
+        ]
+      }
+    ],
+    "languages": [
+      "English"
+    ],
+    "createdAt": "2026-06-28T12:36:19.647Z",
+    "status": "Draft"
+  },
+  {
+    "id": "survey_1782649877090",
+    "name": "kali",
+    "questions": [
+      {
+        "id": "q_1782649848453_ivr00",
+        "questionNo": "Q0",
+        "question": "Do you want to take survey or training module\tTake Survey | Training Module\tlang_en\tsingle_choice",
+        "type": "text"
+      }
+    ],
+    "languages": [
+      "English"
+    ],
+    "status": "Draft",
+    "createdAt": "2026-06-28T12:31:17.059Z"
+  }
+]

@@ -1,0 +1,370 @@
+You are a Senior Full Stack Engineer, Senior Product Designer, and PostgreSQL Architect.
+
+We are building an Agricultural Platform called **OFIS AgriConnect**.
+
+The application already contains:
+
+* Dashboard
+* Disease Case Queue
+* Expert Review Module
+* PostgreSQL Database
+* Next.js App Router
+* TypeScript
+* Tailwind CSS
+* Light/Dark Theme
+
+Your task is to completely redesign the **Survey Builder** module.
+
+## IMPORTANT
+
+Remove the following completely:
+
+* CSV Import
+* Excel Import
+* Paste Questions
+* Question Parser
+
+These features should no longer exist anywhere in the application.
+
+The new Survey Builder should work like a professional enterprise survey management system.
+
+---
+
+# Survey Builder
+
+Create a new page called
+
+**Survey Builder**
+
+The page should contain:
+
+## Header
+
+Title
+
+Survey Builder
+
+Subtitle
+
+Create multilingual WhatsApp surveys for farmers.
+
+Top Right Button
+
+* New Survey
+
+---
+
+# Survey List
+
+Display all surveys stored in the database.
+
+Columns
+
+* Survey Name
+* Total Questions
+* Languages
+* Status
+* Created Date
+* Actions
+
+Actions
+
+* Open
+* Edit
+* Delete
+
+---
+
+# Create Survey
+
+Clicking "New Survey" opens a modal.
+
+Fields
+
+Survey Name
+
+Description
+
+Status
+
+Draft / Published
+
+Supported Languages
+
+English
+Hindi
+Spanish
+Thai
+
+Save Survey
+
+After saving, open the Survey Editor.
+
+---
+
+# Survey Editor
+
+Display questions in a clean enterprise table.
+
+Columns
+
+Question No
+
+English Question
+
+Question Type
+
+Required
+
+Languages
+
+Actions
+
+Actions
+
+Edit
+
+Delete
+
+Duplicate
+
+Bottom Button
+
+* Add Question
+
+---
+
+# Add Question Modal
+
+This modal is the most important part of the project.
+
+Fields
+
+English Question
+
+Question Type
+
+Supported Question Types ONLY
+
+* Single Choice
+* Numeric
+* Text
+* Voice
+
+Required
+
+Yes / No
+
+If Question Type = Single Choice
+
+Show dynamic Options editor.
+
+Example
+
+Option 1
+
+Option 2
+
+Option 3
+
+* Add Option
+
+---
+
+# Translation
+
+After the admin clicks
+
+Generate Translation
+
+Call our FreeLLMAPI.
+
+Translate BOTH
+
+Question
+
+AND
+
+Options
+
+Generate
+
+Hindi
+
+Spanish
+
+Thai
+
+Show loading while translating.
+
+---
+
+# Translation Review
+
+Do NOT automatically save translations.
+
+Instead show four tabs.
+
+English
+
+Hindi
+
+Spanish
+
+Thai
+
+Each language contains editable textboxes.
+
+Admin can edit every translation before saving.
+
+Questions are editable.
+
+Options are editable.
+
+Nothing should be read-only.
+
+Bottom Buttons
+
+Cancel
+
+Generate Again
+
+Save Question
+
+---
+
+# Save Question
+
+After Save Question
+
+Store directly into PostgreSQL.
+
+The database already contains a multilingual survey_questions table.
+
+Save all language fields.
+
+Example
+
+question_en
+
+question_hi
+
+question_es
+
+question_th
+
+options_en
+
+options_hi
+
+options_es
+
+options_th
+
+question_type
+
+question_order
+
+required
+
+survey_id
+
+Do NOT use JSON files.
+
+Do NOT use mock storage.
+
+Use PostgreSQL only.
+
+---
+
+# Edit Question
+
+When clicking Edit
+
+Load every language from PostgreSQL.
+
+Allow editing
+
+English
+
+Hindi
+
+Spanish
+
+Thai
+
+Options
+
+Question Type
+
+Required
+
+Save changes back to PostgreSQL.
+
+---
+
+# Delete Question
+
+Delete from PostgreSQL.
+
+Immediately refresh the table.
+
+---
+
+# Survey Status
+
+Support
+
+Draft
+
+Published
+
+Published surveys will later be consumed by our WhatsApp chatbot.
+
+---
+
+# UI Requirements
+
+The UI must perfectly match the existing dashboard.
+
+Do NOT redesign the application.
+
+Use the existing components, spacing, colors, typography and cards.
+
+Use responsive layouts.
+
+Support both Light and Dark themes.
+
+Use reusable React components.
+
+Use TypeScript.
+
+Use App Router.
+
+Use server actions or API routes where appropriate.
+
+Provide proper loading states.
+
+Provide proper success and error toasts.
+
+Provide validation for every required field.
+
+---
+
+# Future Compatibility
+
+Design the architecture so it can later support
+
+* Additional languages
+* Survey versioning
+* Conditional questions
+* Analytics
+* WhatsApp deployment
+
+Do not implement these now.
+
+Only ensure the architecture supports them.
+
+---
+
+The final implementation should feel like a production-grade enterprise Survey Builder, not a prototype.

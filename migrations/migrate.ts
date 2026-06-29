@@ -35,6 +35,18 @@ async function runMigration() {
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
       await client.query(schemaSql);
       console.log('✅ Database schema initialized successfully.');
+
+      console.log('🌱 Seeding default farmers...');
+      await client.query(`
+        INSERT INTO "ofis-farmer".listed_farmers (phone_no, name, language)
+        VALUES 
+          ('+917085221146', 'Subash Poudel', 'English'),
+          ('+919077900322', 'Amit Sharma', 'Hindi'),
+          ('+84901234567', 'Nguyen Van A', 'Spanish'),
+          ('+66901234567', 'Somchai Dee', 'Thai')
+        ON CONFLICT (phone_no) DO NOTHING;
+      `);
+      console.log('✅ Default farmers seeded successfully.');
     } else {
       console.warn('⚠️ Warning: schema.sql file not found. Skipping table creation.');
     }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Sprout, LayoutDashboard, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, X, Sprout, LayoutDashboard, ClipboardList, ChevronLeft, ChevronRight, Clipboard } from 'lucide-react';
 import { Button } from './ui/button';
 import ThemeToggle from './theme-toggle';
 
@@ -54,6 +54,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Case Queue', href: '/cases', icon: ClipboardList },
+    { name: 'Survey Builder', href: '/survey-builder', icon: Clipboard },
   ];
 
   // Integration variables (derived in client for simplicity)
