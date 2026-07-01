@@ -3,96 +3,199 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { questionEn, optionsEn, targetLanguages } = body as {
+
+    const {
+      questionEn,
+      optionsEn = [],
+      targetLanguages,
+    }: {
       questionEn: string;
       optionsEn?: string[];
       targetLanguages: string[];
-    };
+    } = body;
 
-    if (!questionEn) {
-      return NextResponse.json({ success: false, error: 'Question text is required' }, { status: 400 });
-    }
-    if (!targetLanguages || !Array.isArray(targetLanguages) || targetLanguages.length === 0) {
-      return NextResponse.json({ success: false, error: 'Target languages are required' }, { status: 400 });
+    if (!questionEn?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Question text is required',
+        },
+        { status: 400 }
+      );
     }
 
+    if (!targetLanguages || targetLanguages.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Target languages are required',
+        },
+        { status: 400 }
+      );
+    }
+
+    // ==========================
+    // Environment Variables
+    // ==========================
     const freeLlmUrl = process.env.FREELLM_URL;
     const apiKey = process.env.FREELLM_API;
 
-    const systemPrompt = `You are a professional translator for agricultural surveys. You translate surveys to help farmers understand the questions perfectly.
-You must output a raw, valid JSON object and absolutely nothing else. No markdown wrap, no explanations, no text before or after the JSON.`;
+    if (!freeLlmUrl) {
+      throw new Error(
+        'FREELLM_URL environment variable is missing.'
+      );
+    }
 
-    const userPrompt = `Translate the following agricultural survey question and its choice options into these languages: ${targetLanguages.join(', ')}.
+    const systemPrompt = `
+You are a professional translator for agricultural surveys.
 
-English Question:
+Translate accurately.
+
+Return ONLY a valid raw JSON object.
+
+Do NOT return markdown.
+Do NOT return explanation.
+Do NOT wrap inside \`\`\`json.
+`;
+
+    const userPrompt = `
+Translate the following agricultural survey question into:
+
+${targetLanguages.join(", ")}
+
+Question:
 "${questionEn}"
 
-Options to translate in the exact same order:
-${optionsEn && optionsEn.length > 0 ? optionsEn.map((opt, i) => `${i + 1}. ${opt}`).join('\n') : '(None)'}
-
-You must return a raw JSON object matching the following structure:
-{
-  ${targetLanguages.map(lang => `"${lang}": {
-    "question": "translated question text in ${lang}",
-    "options": [${optionsEn && optionsEn.length > 0 ? optionsEn.map(() => `"translated option text"`).join(', ') : ''}]
-  }`).join(',\n  ')}
+Options:
+${
+  optionsEn.length
+    ? optionsEn.map((o, i) => `${i + 1}. ${o}`).join("\n")
+    : "(None)"
 }
 
-Translate accurately and output ONLY the JSON object. Do not include markdown code block formatting like \`\`\`json.`;
+Return ONLY this JSON:
+
+{
+${targetLanguages
+  .map(
+    (lang) => `
+"${lang}": {
+  "question": "translated question",
+  "options": [
+    ${
+      optionsEn.length
+        ? optionsEn.map(() => `"translated option"`).join(", ")
+        : ""
+    }
+  ]
+}`
+  )
+  .join(",")}
+}
+`;
 
     const response = await fetch(freeLlmUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        "Content-Type": "application/json",
+        ...(apiKey
+          ? {
+              Authorization: `Bearer ${apiKey}`,
+            }
+          : {}),
       },
       body: JSON.stringify({
-        model: 'auto',
+        model: "auto",
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      })
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          {
+            role: "user",
+            content: userPrompt,
+          },
+        ],
+      }),
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('FreeLLMAPI translation error:', errText);
-      return NextResponse.json({ success: false, error: 'Failed to translate via FreeLLMAPI' }, { status: response.status });
+      const errorText = await response.text();
+
+      console.error(errorText);
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "FreeLLMAPI request failed.",
+          details: errorText,
+        },
+        {
+          status: response.status,
+        }
+      );
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content?.trim();
+    const result = await response.json();
+
+    const content =
+      result?.choices?.[0]?.message?.content?.trim();
 
     if (!content) {
-      return NextResponse.json({ success: false, error: 'Received empty response from translation model' }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Model returned empty response.",
+        },
+        {
+          status: 500,
+        }
+      );
     }
 
-    // Clean markdown code blocks if the model wrapped the JSON
     let cleanContent = content;
-    if (cleanContent.startsWith('```')) {
-      // Find the first newline to strip the tag (e.g. ```json)
-      const firstNewlineIdx = cleanContent.indexOf('\n');
-      if (firstNewlineIdx !== -1) {
-        cleanContent = cleanContent.substring(firstNewlineIdx).trim();
-      }
-      // Strip trailing ```
-      if (cleanContent.endsWith('```')) {
-        cleanContent = cleanContent.substring(0, cleanContent.length - 3).trim();
-      }
+
+    if (cleanContent.startsWith("```")) {
+      cleanContent = cleanContent.replace(/^```[a-zA-Z]*\n?/, "");
+      cleanContent = cleanContent.replace(/```$/, "");
+      cleanContent = cleanContent.trim();
     }
 
     try {
       const translations = JSON.parse(cleanContent);
-      return NextResponse.json({ success: true, data: translations });
-    } catch (parseErr) {
-      console.error('Failed to parse translation JSON:', cleanContent, parseErr);
-      return NextResponse.json({ success: false, error: 'Model output was not valid JSON. Please try again.', rawOutput: content }, { status: 500 });
-    }
 
-  } catch (error) {
-    const err = error as Error;
-    console.error('Translation endpoint error:', err);
-    return NextResponse.json({ success: false, error: err.message || 'An error occurred during translation' }, { status: 500 });
+      return NextResponse.json({
+        success: true,
+        data: translations,
+      });
+    } catch (err) {
+      console.error(err);
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Model did not return valid JSON.",
+          rawOutput: content,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+  } catch (err) {
+    console.error(err);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Unknown server error",
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }
