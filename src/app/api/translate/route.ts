@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Target languages are required' }, { status: 400 });
     }
 
-    const freeLlmUrl = process.env.FREELLMURL;
+    const freeLlmUrl = process.env.FREELLM_URL;
     const apiKey = process.env.FREELLM_API;
 
     const systemPrompt = `You are a professional translator for agricultural surveys. You translate surveys to help farmers understand the questions perfectly.
