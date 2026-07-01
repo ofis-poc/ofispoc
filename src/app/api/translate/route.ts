@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Target languages are required' }, { status: 400 });
     }
 
-    const freeLlmUrl = 'http://localhost:3001/v1/chat/completions';
-    const apiKey = 'freellmapi-fe4c567b9cbf02857f48464598063afd965832f4b81dd576';
+    const freeLlmUrl = process.env.FREELLMURL;
+    const apiKey = process.env.FREELLM_API;
 
     const systemPrompt = `You are a professional translator for agricultural surveys. You translate surveys to help farmers understand the questions perfectly.
 You must output a raw, valid JSON object and absolutely nothing else. No markdown wrap, no explanations, no text before or after the JSON.`;
